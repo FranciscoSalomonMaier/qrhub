@@ -6,3 +6,4 @@ backend/storage/*.key
 backend/.env
 
 docker/postgres
+Anotações.txt
