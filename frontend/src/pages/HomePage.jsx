@@ -1,5 +1,6 @@
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../hooks/useAuth";
+import { Link } from "react-router-dom";
 
 export function HomePage() {
     const { user, logout, isLoggingOut } = useAuth();
@@ -19,7 +20,8 @@ export function HomePage() {
                 <h1 className="mt-2 text-2xl font-bold text-slate-950">Olá, {user.name}.</h1>
                 <p className="mt-2 text-slate-500">Você está logado no QRHub.</p>
                 <p className="mt-1 text-sm text-slate-400">{user.email}</p>
-                <Button className="mt-8 bg-slate-900 text-white hover:bg-slate-800" disabled={isLoggingOut} onClick={handleLogout}>{isLoggingOut ? "Saindo..." : "Sair"}</Button>
+                <div className="mt-8 grid gap-3 sm:grid-cols-2"><Link className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white" to="/qr-codes">Meus QR Codes</Link><Link className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-200 px-4 text-sm font-semibold text-blue-700" to="/qr-codes/create">Criar QR Code</Link></div>
+                <Button className="mt-3 bg-slate-900 text-white hover:bg-slate-800" disabled={isLoggingOut} onClick={handleLogout}>{isLoggingOut ? "Saindo..." : "Sair"}</Button>
             </section>
         </main>
     );
