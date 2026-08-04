@@ -15,7 +15,7 @@ class QrCode extends Model
     /** @use HasFactory<QrCodeFactory> */
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['uuid', 'name', 'type', 'content', 'slug', 'foreground_color', 'background_color', 'size', 'error_correction_level', 'is_active', 'is_dynamic'];
+    protected $fillable = ['uuid', 'name', 'type', 'content', 'slug', 'foreground_color', 'background_color', 'size', 'margin', 'error_correction_level', 'is_active', 'is_dynamic', 'logo_path'];
 
     protected function casts(): array
     {
@@ -26,6 +26,7 @@ class QrCode extends Model
             'is_active' => 'boolean',
             'is_dynamic' => 'boolean',
             'size' => 'integer',
+            'margin' => 'integer',
         ];
     }
 

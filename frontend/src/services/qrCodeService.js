@@ -7,6 +7,7 @@ export async function updateQrCode(uuid, payload) { return (await api.patch(`/qr
 export async function deleteQrCode(uuid) { await api.delete(`/qr-codes/${uuid}`); }
 export async function updateQrCodeStatus(uuid, isActive) { return (await api.patch(`/qr-codes/${uuid}/status`, { is_active: isActive })).data.data; }
 export async function getQrCodePreview(uuid) { return (await api.get(`/qr-codes/${uuid}/preview`, { responseType: 'text' })).data; }
+export async function previewQrCode(payload, signal) { return (await api.post('/qr-codes/preview', payload, { responseType: 'text', signal })).data; }
 export async function downloadQrCode(uuid, format) {
   const response = await api.get(`/qr-codes/${uuid}/download/${format}`, { responseType: 'blob' });
   const disposition = response.headers['content-disposition'] ?? '';

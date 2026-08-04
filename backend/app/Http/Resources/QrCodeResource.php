@@ -18,6 +18,7 @@ class QrCodeResource extends JsonResource
             'foreground_color' => $this->foreground_color,
             'background_color' => $this->background_color,
             'size' => $this->size,
+            'margin' => $this->margin,
             'error_correction_level' => $this->error_correction_level->value,
             'is_active' => $this->is_active,
             'is_dynamic' => $this->is_dynamic,

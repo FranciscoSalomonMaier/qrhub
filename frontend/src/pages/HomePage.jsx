@@ -1,28 +1,9 @@
-import { Button } from "../components/ui/Button";
-import { useAuth } from "../hooks/useAuth";
-import { Link } from "react-router-dom";
+import { useState } from 'react';
+import { QrCodeForm } from '../components/qr-codes/QrCodeForm';
+import { useQrCodeMutations } from '../hooks/useQrCodes';
 
 export function HomePage() {
-    const { user, logout, isLoggingOut } = useAuth();
-    async function handleLogout() {
-        try {
-            await logout();
-        } catch (error) {
-            if (import.meta.env.DEV) console.error("Falha no logout", error);
-            window.location.assign("/login");
-        }
-    }
-    return (
-        <main className="grid min-h-screen place-items-center bg-slate-50 px-4">
-            <section className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/60">
-                {user.avatar ? <img className="mx-auto mb-5 size-20 rounded-full object-cover ring-4 ring-blue-100" src={user.avatar} alt={`Avatar de ${user.name}`} /> : <div className="mx-auto mb-5 grid size-20 place-items-center rounded-full bg-blue-100 text-2xl font-bold text-blue-700">{user.name?.charAt(0)}</div>}
-                <p className="text-sm font-semibold text-blue-700">Você está logado.</p>
-                <h1 className="mt-2 text-2xl font-bold text-slate-950">Olá, {user.name}.</h1>
-                <p className="mt-2 text-slate-500">Você está logado no QRHub.</p>
-                <p className="mt-1 text-sm text-slate-400">{user.email}</p>
-                <div className="mt-8 grid gap-3 sm:grid-cols-2"><Link className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white" to="/qr-codes">Meus QR Codes</Link><Link className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-200 px-4 text-sm font-semibold text-blue-700" to="/qr-codes/create">Criar QR Code</Link></div>
-                <Button className="mt-3 bg-slate-900 text-white hover:bg-slate-800" disabled={isLoggingOut} onClick={handleLogout}>{isLoggingOut ? "Saindo..." : "Sair"}</Button>
-            </section>
-        </main>
-    );
+  const { create } = useQrCodeMutations(); const [error, setError] = useState('');
+  async function submit(payload) { setError(''); try { return await create.mutateAsync(payload); } catch (exception) { setError(exception.response?.data?.message ?? 'Não foi possível criar o QR Code. Revise os dados e tente novamente.'); throw exception; } }
+  return <div><div className="mb-8"><p className="text-sm font-bold uppercase tracking-widest text-blue-600">Gerador de QR Code</p><h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Crie. Personalize. Compartilhe.</h1><p className="mt-3 max-w-2xl text-base leading-7 text-slate-500">Transforme seus dados em um QR Code profissional, pronto para baixar e usar.</p></div><QrCodeForm onSubmit={submit} busy={create.isPending} serverError={error} /></div>;
 }

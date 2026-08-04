@@ -26,6 +26,7 @@ abstract class QrCodeRequest extends FormRequest
             'foreground_color' => ['sometimes', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'background_color' => ['sometimes', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'size' => ['sometimes', 'integer', 'min:128', 'max:2048'],
+            'margin' => ['sometimes', 'integer', 'min:0', 'max:20'],
             'error_correction_level' => ['sometimes', Rule::enum(QrCodeErrorCorrectionLevel::class)],
             'is_active' => ['sometimes', 'boolean'],
         ];

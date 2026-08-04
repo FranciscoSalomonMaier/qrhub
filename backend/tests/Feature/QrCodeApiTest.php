@@ -89,4 +89,53 @@ class QrCodeApiTest extends TestCase
         $this->actingAs($user)->get("$base/download/svg")->assertOk()->assertDownload('meu-site-qr-code.svg');
         $this->actingAs($user)->get("$base/download/png")->assertOk()->assertDownload('meu-site-qr-code.png');
     }
+
+    public function test_live_preview_supports_every_type_without_persisting(): void
+    {
+        $user = User::factory()->create();
+        $contents = [
+            'url' => ['url' => 'https://example.com'],
+            'text' => ['text' => 'Conteúdo de teste'],
+            'email' => ['email' => 'contato@example.com', 'subject' => 'Olá', 'body' => 'Mensagem'],
+            'phone' => ['phone' => '+55 11 99999-9999'],
+            'whatsapp' => ['phone' => '+55 11 99999-9999', 'message' => 'Olá'],
+            'wifi' => ['ssid' => 'Minha Rede', 'password' => 'segredo', 'encryption' => 'WPA', 'hidden' => false],
+        ];
+
+        foreach ($contents as $type => $content) {
+            $this->actingAs($user)->post('/api/v1/qr-codes/preview', [
+                'type' => $type,
+                'content' => $content,
+                'foreground_color' => '#123456',
+                'background_color' => '#FFFFFF',
+                'size' => 512,
+                'margin' => 4,
+                'error_correction_level' => 'M',
+            ])->assertOk()->assertHeader('Content-Type', 'image/svg+xml; charset=UTF-8')->assertSee('<svg', false);
+        }
+
+        $this->assertDatabaseCount('qr_codes', 0);
+    }
+
+    public function test_live_preview_requires_authentication_and_valid_type_content(): void
+    {
+        $payload = ['type' => 'invalid', 'content' => []];
+        $this->postJson('/api/v1/qr-codes/preview', $payload)->assertUnauthorized();
+        $this->actingAs(User::factory()->create())->postJson('/api/v1/qr-codes/preview', $payload)
+            ->assertUnprocessable()->assertJsonValidationErrors('type');
+    }
+
+    public function test_creation_applies_customization_and_ignores_user_id(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $this->actingAs($user)->postJson('/api/v1/qr-codes', [
+            'name' => 'Personalizado', 'type' => 'url', 'content' => ['url' => 'https://example.com'],
+            'foreground_color' => '#123456', 'background_color' => '#FEDCBA', 'size' => 768,
+            'margin' => 8, 'error_correction_level' => 'H', 'user_id' => $other->id,
+        ])->assertCreated()->assertJsonPath('data.margin', 8);
+
+        $this->assertDatabaseHas('qr_codes', ['user_id' => $user->id, 'margin' => 8, 'foreground_color' => '#123456']);
+        $this->assertDatabaseMissing('qr_codes', ['user_id' => $other->id]);
+    }
 }

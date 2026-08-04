@@ -8,6 +8,8 @@ export const qrCodeKeys = {
 export function useQrCodes(filters) { return useQuery({ queryKey: qrCodeKeys.list(filters), queryFn: () => service.listQrCodes(filters), placeholderData: (old) => old }); }
 export function useQrCode(uuid) { return useQuery({ queryKey: qrCodeKeys.detail(uuid), queryFn: () => service.getQrCode(uuid), enabled: Boolean(uuid) }); }
 export function useQrCodePreview(uuid) { return useQuery({ queryKey: qrCodeKeys.preview(uuid), queryFn: () => service.getQrCodePreview(uuid), enabled: Boolean(uuid), staleTime: 60_000 }); }
+export function useQrCodeLivePreview(payload, enabled) { return useQuery({ queryKey: ['qr-codes', 'live-preview', payload], queryFn: ({ signal }) => service.previewQrCode(payload, signal), enabled, retry: false, staleTime: 30_000 }); }
+export function useDownloadQrCode() { return useMutation({ mutationFn: ({ uuid, format }) => service.downloadQrCode(uuid, format) }); }
 export function useQrCodeMutations() {
   const client = useQueryClient();
   const refresh = () => client.invalidateQueries({ queryKey: qrCodeKeys.all });

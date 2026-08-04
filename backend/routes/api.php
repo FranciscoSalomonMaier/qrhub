@@ -21,7 +21,8 @@ Route::prefix('v1/auth')->group(function (): void {
 });
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function (): void {
-    Route::get('/qr-codes/{qrCode}/preview', [QrCodeController::class, 'preview']);
+    Route::post('/qr-codes/preview', [QrCodeController::class, 'preview'])->middleware('throttle:30,1');
+    Route::get('/qr-codes/{qrCode}/preview', [QrCodeController::class, 'savedPreview']);
     Route::get('/qr-codes/{qrCode}/download/{format}', [QrCodeController::class, 'download'])->whereIn('format', ['png', 'svg']);
     Route::patch('/qr-codes/{qrCode}/status', [QrCodeController::class, 'status']);
     Route::apiResource('qr-codes', QrCodeController::class);

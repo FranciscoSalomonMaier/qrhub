@@ -22,7 +22,7 @@ class QrCodeGeneratorService
             encoding: new Encoding('UTF-8'),
             errorCorrectionLevel: $this->level($model->error_correction_level),
             size: $model->size,
-            margin: 10,
+            margin: $model->margin,
             foregroundColor: $this->color($model->foreground_color),
             backgroundColor: $this->color($model->background_color),
         );

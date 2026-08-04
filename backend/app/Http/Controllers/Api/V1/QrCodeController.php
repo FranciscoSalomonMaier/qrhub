@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\QrCodeType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\QrCodes\PreviewQrCodeRequest;
 use App\Http\Requests\QrCodes\StoreQrCodeRequest;
 use App\Http\Requests\QrCodes\UpdateQrCodeRequest;
 use App\Http\Requests\QrCodes\UpdateQrCodeStatusRequest;
@@ -52,6 +53,7 @@ class QrCodeController extends Controller
             'foreground_color' => '#000000',
             'background_color' => '#FFFFFF',
             'size' => 512,
+            'margin' => 4,
             'error_correction_level' => 'M',
             'is_active' => true,
             'is_dynamic' => false,
@@ -91,11 +93,24 @@ class QrCodeController extends Controller
         return new QrCodeResource($qrCode->refresh());
     }
 
-    public function preview(QrCode $qrCode, QrCodeGeneratorService $generator): Response
+    public function preview(PreviewQrCodeRequest $request, QrCodeGeneratorService $generator): Response
+    {
+        $qrCode = new QrCode(array_merge([
+            'foreground_color' => '#000000',
+            'background_color' => '#FFFFFF',
+            'size' => 512,
+            'margin' => 4,
+            'error_correction_level' => 'M',
+        ], $request->validated()));
+
+        return $this->svgResponse($generator->generate($qrCode, 'svg'));
+    }
+
+    public function savedPreview(QrCode $qrCode, QrCodeGeneratorService $generator): Response
     {
         Gate::authorize('view', $qrCode);
 
-        return response($generator->generate($qrCode, 'svg'), 200, ['Content-Type' => 'image/svg+xml; charset=UTF-8', 'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'"]);
+        return $this->svgResponse($generator->generate($qrCode, 'svg'));
     }
 
     public function download(QrCode $qrCode, string $format, QrCodeGeneratorService $generator): Response
@@ -116,5 +131,14 @@ class QrCodeController extends Controller
         } while (QrCode::withTrashed()->where('slug', $slug)->exists());
 
         return $slug;
+    }
+
+    private function svgResponse(string $svg): Response
+    {
+        return response($svg, 200, [
+            'Content-Type' => 'image/svg+xml; charset=UTF-8',
+            'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'",
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 }
