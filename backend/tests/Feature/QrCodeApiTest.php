@@ -86,8 +86,29 @@ class QrCodeApiTest extends TestCase
         $base = "/api/v1/qr-codes/{$qrCode->uuid}";
 
         $this->actingAs($user)->get("$base/preview")->assertOk()->assertHeader('Content-Type', 'image/svg+xml; charset=UTF-8')->assertSee('<svg', false);
-        $this->actingAs($user)->get("$base/download/svg")->assertOk()->assertDownload('meu-site-qr-code.svg');
-        $this->actingAs($user)->get("$base/download/png")->assertOk()->assertDownload('meu-site-qr-code.png');
+        $svg = $this->actingAs($user)->get("$base/download/svg")
+            ->assertOk()->assertDownload('meu-site-qr-code.svg')
+            ->assertHeader('Content-Type', 'image/svg+xml');
+        $png = $this->actingAs($user)->get("$base/download/png")
+            ->assertOk()->assertDownload('meu-site-qr-code.png')
+            ->assertHeader('Content-Type', 'image/png');
+
+        $this->assertStringContainsString('<svg', $svg->getContent());
+        $this->assertGreaterThan(8, strlen($png->getContent()));
+        $this->assertSame("\x89PNG\r\n\x1a\n", substr($png->getContent(), 0, 8));
+    }
+
+    public function test_pagination_is_unique_and_stable_when_sort_values_are_equal(): void
+    {
+        $user = User::factory()->create();
+        QrCode::factory()->count(5)->for($user)->create(['created_at' => '2026-01-01 00:00:00']);
+
+        $first = $this->actingAs($user)->getJson('/api/v1/qr-codes?per_page=3&page=1')->assertOk()->json('data');
+        $second = $this->actingAs($user)->getJson('/api/v1/qr-codes?per_page=3&page=2')->assertOk()->json('data');
+        $ids = array_column(array_merge($first, $second), 'id');
+
+        $this->assertCount(5, $ids);
+        $this->assertCount(5, array_unique($ids));
     }
 
     public function test_live_preview_supports_every_type_without_persisting(): void

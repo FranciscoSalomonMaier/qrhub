@@ -37,7 +37,8 @@ class QrCodeController extends Controller
             ->when($validated['search'] ?? null, fn ($q, $search) => $q->where('name', 'like', '%'.addcslashes($search, '%_\\').'%'))
             ->when($validated['type'] ?? null, fn ($q, $type) => $q->where('type', $type))
             ->when(isset($validated['status']), fn ($q) => $q->where('is_active', $validated['status'] === 'active'))
-            ->orderBy($validated['sort'] ?? 'created_at', $validated['direction'] ?? 'desc');
+            ->orderBy($validated['sort'] ?? 'created_at', $validated['direction'] ?? 'desc')
+            ->orderBy('id', $validated['direction'] ?? 'desc');
 
         return new QrCodeCollection($query->paginate($validated['per_page'] ?? 12)->withQueryString());
     }
@@ -101,7 +102,7 @@ class QrCodeController extends Controller
             'size' => 512,
             'margin' => 4,
             'error_correction_level' => 'M',
-        ], $request->validated()));
+        ], array_merge($request->validated(), ['size' => 320])));
 
         return $this->svgResponse($generator->generate($qrCode, 'svg'));
     }
