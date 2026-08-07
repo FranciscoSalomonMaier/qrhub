@@ -55,4 +55,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(QrCode::class);
     }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        return app(\App\Services\Subscriptions\SubscriptionAccessService::class)->hasActiveSubscription($this);
+    }
 }

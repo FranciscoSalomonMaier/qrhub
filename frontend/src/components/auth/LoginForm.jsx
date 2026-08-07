@@ -37,7 +37,9 @@ export function LoginForm() {
         if (!validate()) return;
         try {
             await login(form);
-            navigate("/", { replace: true });
+            const requested = searchParams.get('return');
+            const safeReturn = requested?.startsWith('/') && !requested.startsWith('//') ? requested : (sessionStorage.getItem('qrhub:pending-qr-code') ? '/?resume=create' : '/');
+            navigate(safeReturn, { replace: true });
         } catch (error) {
             if (import.meta.env.DEV) console.error("Falha no login", error);
             setRequestError(friendlyError(error));
@@ -63,7 +65,7 @@ export function LoginForm() {
                 {isLoggingIn ? "Entrando..." : "Entrar"}
             </Button>
             <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-slate-400"><span className="h-px flex-1 bg-slate-200" /><span>ou</span><span className="h-px flex-1 bg-slate-200" /></div>
-            <Button className="border border-slate-300 bg-white text-slate-700 hover:bg-slate-50" type="button" onClick={() => window.location.assign(getGoogleLoginUrl())}>
+            <Button className="border border-slate-300 bg-white text-slate-700 hover:bg-slate-50" type="button" onClick={() => window.location.assign(getGoogleLoginUrl(sessionStorage.getItem('qrhub:pending-qr-code') ? 'create' : ''))}>
                 <svg className="size-5" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c1.9-1.8 2.9-4.4 2.9-7.4Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.5c-.9.6-2.1 1-3.4 1a5.9 5.9 0 0 1-5.5-4.1H3.1v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.5 14a6 6 0 0 1 0-3.9V7.4H3.1a10 10 0 0 0 0 9.2L6.5 14Z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 3.1 7.4l3.4 2.7A5.9 5.9 0 0 1 12 5.9Z"/></svg>
                 Continuar com Google
             </Button>

@@ -17,6 +17,15 @@ class UserFactory extends Factory
      */
     protected static ?string $password;
 
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user): void {
+            if (! app()->environment('testing')) return;
+            $plan = \App\Models\Plan::firstOrCreate(['slug' => 'test-monthly'], ['name' => 'Teste Mensal', 'billing_interval' => 'month', 'billing_interval_count' => 1, 'price' => 1, 'currency' => 'BRL', 'is_active' => true]);
+            $user->subscriptions()->create(['uuid' => (string) Str::uuid(), 'plan_id' => $plan->id, 'status' => 'active', 'starts_at' => now()->subDay(), 'ends_at' => now()->addMonth()]);
+        });
+    }
+
     /**
      * Define the model's default state.
      *

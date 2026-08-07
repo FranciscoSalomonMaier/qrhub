@@ -24,7 +24,7 @@ export async function logout() {
     return (await api.post("/auth/logout")).data;
 }
 
-export function getGoogleLoginUrl() {
+export function getGoogleLoginUrl(intent = '') {
     const base = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:8000";
-    return `${base.replace(/\/$/, "")}/api/v1/auth/google/redirect`;
+    return `${base.replace(/\/$/, "")}/api/v1/auth/google/redirect${intent === 'create' ? '?intent=create' : ''}`;
 }

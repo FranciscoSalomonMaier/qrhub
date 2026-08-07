@@ -138,10 +138,10 @@ class QrCodeApiTest extends TestCase
         $this->assertDatabaseCount('qr_codes', 0);
     }
 
-    public function test_live_preview_requires_authentication_and_valid_type_content(): void
+    public function test_live_preview_is_public_and_validates_type_content(): void
     {
         $payload = ['type' => 'invalid', 'content' => []];
-        $this->postJson('/api/v1/qr-codes/preview', $payload)->assertUnauthorized();
+        $this->postJson('/api/v1/qr-codes/preview', $payload)->assertUnprocessable()->assertJsonValidationErrors('type');
         $this->actingAs(User::factory()->create())->postJson('/api/v1/qr-codes/preview', $payload)
             ->assertUnprocessable()->assertJsonValidationErrors('type');
     }

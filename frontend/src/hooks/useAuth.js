@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAuthenticatedUser, login as loginRequest, logout as logoutRequest } from "../services/auth";
+import { useSubscription } from './useSubscription';
 
 const key = ["authenticated-user"];
 
@@ -19,11 +20,14 @@ export function useAuth() {
         mutationFn: logoutRequest,
         onSuccess: () => queryClient.setQueryData(key, null),
     });
+    const subscription = useSubscription(Boolean(query.data));
 
     return {
         user: query.data ?? null,
         isAuthenticated: Boolean(query.data),
-        isLoading: query.isLoading,
+        isLoading: query.isLoading || (Boolean(query.data) && subscription.isLoading),
+        hasActiveSubscription: subscription.data?.has_active_subscription ?? false,
+        subscription: subscription.data?.subscription ?? null,
         error: query.error,
         login: login.mutateAsync,
         isLoggingIn: login.isPending,

@@ -14,6 +14,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([UserSeeder::class, QrCodeSeeder::class]);
+        $this->call([PlanSeeder::class, UserSeeder::class, QrCodeSeeder::class]);
     }
 }

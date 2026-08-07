@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enums\QrCodeType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\QrCodes\PreviewQrCodeRequest;
+use App\Http\Requests\QrCodes\BulkDeleteQrCodesRequest;
 use App\Http\Requests\QrCodes\StoreQrCodeRequest;
 use App\Http\Requests\QrCodes\UpdateQrCodeRequest;
 use App\Http\Requests\QrCodes\UpdateQrCodeStatusRequest;
@@ -14,6 +15,7 @@ use App\Models\QrCode;
 use App\Services\QrCodes\QrCodeGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
@@ -84,6 +86,23 @@ class QrCodeController extends Controller
         $qrCode->delete();
 
         return response()->noContent();
+    }
+
+    public function bulkDelete(BulkDeleteQrCodesRequest $request): \Illuminate\Http\JsonResponse
+    {
+        $ids = $request->validated('ids');
+        $deleted = DB::transaction(function () use ($request, $ids): int {
+            $qrCodes = $request->user()->qrCodes()->whereIn('uuid', $ids)->lockForUpdate()->get();
+            if ($qrCodes->count() !== count($ids)) {
+                abort(422, 'Não foi possível excluir os QR Codes selecionados.');
+            }
+            foreach ($qrCodes as $qrCode) {
+                Gate::authorize('delete', $qrCode);
+                $qrCode->delete();
+            }
+            return $qrCodes->count();
+        });
+        return response()->json(['message' => 'QR Codes excluídos com sucesso.', 'deleted_count' => $deleted]);
     }
 
     public function status(UpdateQrCodeStatusRequest $request, QrCode $qrCode): QrCodeResource

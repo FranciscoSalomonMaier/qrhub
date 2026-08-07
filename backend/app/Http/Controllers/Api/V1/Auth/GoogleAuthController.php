@@ -14,6 +14,7 @@ class GoogleAuthController extends Controller
 {
     public function redirect(): RedirectResponse
     {
+        request()->session()->put('google_login_intent', request()->query('intent') === 'create' ? 'create' : null);
         return Socialite::driver('google')->redirect();
     }
 
@@ -24,7 +25,8 @@ class GoogleAuthController extends Controller
             Auth::login($user, true);
             request()->session()->regenerate();
 
-            return redirect()->away(rtrim(config('app.frontend_url'), '/').'/');
+            $path = request()->session()->pull('google_login_intent') === 'create' ? '/?resume=create' : '/';
+            return redirect()->away(rtrim(config('app.frontend_url'), '/').$path);
         } catch (Throwable $exception) {
             Log::warning('Falha no login com Google.', ['exception' => $exception]);
 
